@@ -38,6 +38,7 @@ describe('dataSourceRoute', () => {
     }
   };
 
+  // import { dataSourceRoute, quickRouter } from '../lib'
   FalcorRouter.create = quickRouter;
 
   const quickConfig = {
@@ -50,13 +51,30 @@ describe('dataSourceRoute', () => {
     }
   };
 
-  const quickRouter = FalcorRouter.create(testConfig);
+  // const quickRoute = FalcorRouter.create(testConfig);
+  const quickRoute = quickRouter(testConfig);
 
-  app.use(dataSourceRoute(quickRouter))
+  app.use(dataSourceRoute(quickRoute))
+
+  var querystring = require('querystring');
+  var urlencode = require('urlencode');
+
+  function pathify(arg) {
+    var str = JSON.stringify(arg);
+    return str
+    .replace(/"(.+?)"/g, function(match,$1) {
+      return '"' + urlencode($1) + '"';
+    })
+    .replace(/"/g, '%22');
+  }
 
   it('should return the JSON Graph', done => {
+    var params = pathify([['test']]);
+    // console.log('params', params);
+    let query = '/todo?paths=' + params + '&method=get';
+
     request(app.listen())
-      .get('/todo?paths=[[%22test%22]]&method=get')
+      .get(query)
       .expect(200)
       .expect('Content-Type', /json/)
       .expect({
